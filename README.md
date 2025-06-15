@@ -35,9 +35,11 @@ This Terraform module provisions a Google Cloud Platform (GCP) virtual machine a
 ├── main.tf                    # Terraform resources
 ├── variables.tf               # Input variables
 ├── outputs.tf                 # Output values
-├── terraform.tf               # Provider configuration
+├── providers.tf               # Provider configuration
 ├── scripts/
-│   └── provision_vars.sh      # Startup script (called via templatefile)
+    └── provision_basic.sh     # Startup script (called via templatefile)
+    └── provision_vars.sh
+├── vm.tf 
 └── README.md                  # You're here
 ```
 
