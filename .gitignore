@@ -1,0 +1,10 @@
+/.terraform/
+/*.exe
+/.terraform.lock.hcl
+/id_rsa.pub
+/terraform.tfstate
+/terraform.tfstate.1749588887.backup
+/terraform.tfstate.1749860668.backup
+/terraform.tfstate.backup
+/terraform.tfvars
+/var.gcp_credentials_file
