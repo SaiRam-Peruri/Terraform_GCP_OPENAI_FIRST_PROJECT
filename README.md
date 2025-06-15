@@ -87,7 +87,15 @@ This Terraform module provisions a Google Cloud Platform (GCP) virtual machine a
     ```bash
     terraform init
     ```
-
+    
+    📦 Format, Validate, and Review Terraform Configuration
+    Run the following commands to ensure your Terraform code is clean and correct:
+    
+    ```bash
+    terraform fmt         # Format files to canonical style
+    terraform validate    # Validate the configuration is syntactically valid
+    terraform plan  
+    ```
 5. ✅ **Apply the Terraform Plan**
 
     ```bash
