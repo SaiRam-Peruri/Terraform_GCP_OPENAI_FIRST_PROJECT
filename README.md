@@ -113,6 +113,51 @@ The diagram above shows the relationship between all Terraform resources in this
       - Username: `admin@demo.gs`
       - Password: Get from `terraform output password`
 
+## 🛡️ Sentinel Policies
+
+This project includes Sentinel policies (`sentinel/openwebui-policy.sentinel`) to enforce security and compliance rules:
+
+### Policy Rules
+
+1. **Instance Configuration**
+   - Allowed machine types: `n1-standard-4`, `g2-standard-4`
+   - Minimum disk size: 200GB
+   - Maximum disk size: 500GB
+   - Required tags: terraform, ssh, http, https
+   - Service account is mandatory
+   - External IP configuration required
+
+2. **Security Rules**
+   - No open SSH access (0.0.0.0/0)
+   - Required firewall tags
+   - Network interface validation
+
+### Using Sentinel
+
+1. **Setup Sentinel**
+   ```bash
+   # Install Sentinel (if not already installed)
+   curl -fsSL https://releases.hashicorp.com/sentinel/0.18.4/sentinel_0.18.4_linux_amd64.zip -o sentinel.zip
+   unzip sentinel.zip
+   sudo mv sentinel /usr/local/bin/
+   ```
+
+2. **Test Policies**
+   ```bash
+   # Generate Terraform plan
+   terraform plan -out=tfplan
+
+   # Convert plan to JSON
+   terraform show -json tfplan > tfplan.json
+
+   # Test Sentinel policy
+   sentinel test sentinel/openwebui-policy.sentinel
+   ```
+
+3. **Policy Enforcement**
+   - Policies are automatically enforced in Terraform Cloud/Enterprise
+   - For local development, use pre-commit hooks or CI/CD pipelines
+
 ## 🔧 Maintenance & Troubleshooting
 
 ### Checking Services

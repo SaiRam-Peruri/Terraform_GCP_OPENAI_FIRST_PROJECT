@@ -1,0 +1,137 @@
+# Import common-functions/tfplan-functions/tfplan-functions.sentinel
+# with alias "plan"
+import "tfplan/v2" as tfplan
+import "tfstate/v2" as tfstate
+import "strings"
+import "types"
+
+# Get all Google Compute instances
+get_gcp_instances = func() {
+    instances = []
+    for tfplan.resource_changes as _, rc {
+        if rc.type is "google_compute_instance" and
+           rc.mode is "managed" {
+            append(instances, rc)
+        }
+    }
+    return instances
+}
+
+# Allowed machine types
+allowed_machine_types = [
+    "n1-standard-4",
+    "g2-standard-4"
+]
+
+# Required tags
+required_tags = [
+    "terraform",
+    "ssh",
+    "http",
+    "https"
+]
+
+# Disk size limits
+min_disk_size_gb = 200
+max_disk_size_gb = 500
+
+# Validate instance configuration
+validate_instance = func(instance) {
+    is_valid = true
+    message = ""
+
+    # Check machine type
+    machine_type = instance.change.after.machine_type
+    if machine_type not in allowed_machine_types {
+        message = sprintf("Machine type %s is not allowed. Must be one of: %v",
+                         machine_type, allowed_machine_types)
+        is_valid = false
+    }
+
+    # Check boot disk size
+    boot_disk = instance.change.after.boot_disk[0]
+    disk_size = boot_disk.initialize_params[0].size
+    if disk_size < min_disk_size_gb {
+        message = sprintf("Boot disk size %d GB is too small. Minimum is %d GB",
+                         disk_size, min_disk_size_gb)
+        is_valid = false
+    }
+    if disk_size > max_disk_size_gb {
+        message = sprintf("Boot disk size %d GB is too large. Maximum is %d GB",
+                         disk_size, max_disk_size_gb)
+        is_valid = false
+    }
+
+    # Check required tags
+    instance_tags = instance.change.after.tags
+    missing_tags = []
+    for required_tags as tag {
+        if tag not in instance_tags {
+            append(missing_tags, tag)
+        }
+    }
+    if length(missing_tags) > 0 {
+        message = sprintf("Missing required tags: %v", missing_tags)
+        is_valid = false
+    }
+
+    # Check service account
+    if "service_account" not in keys(instance.change.after) {
+        message = "Service account is required"
+        is_valid = false
+    }
+
+    # Check network interface configuration
+    network_interface = instance.change.after.network_interface[0]
+    if "access_config" not in keys(network_interface) {
+        message = "External IP is required via access_config"
+        is_valid = false
+    }
+
+    return {
+        "valid": is_valid,
+        "message": message,
+    }
+}
+
+# Firewall rule validation
+validate_firewall_rules = func() {
+    is_valid = true
+    message = ""
+
+    for tfplan.resource_changes as _, rc {
+        if rc.type is "google_compute_firewall" {
+            # Ensure no overly permissive rules (0.0.0.0/0) for SSH
+            if rc.change.after.name is "allow-ssh" {
+                source_ranges = rc.change.after.source_ranges
+                if "0.0.0.0/0" in source_ranges {
+                    message = "SSH access should not be open to the world (0.0.0.0/0)"
+                    is_valid = false
+                }
+            }
+        }
+    }
+
+    return {
+        "valid": is_valid,
+        "message": message,
+    }
+}
+
+# Main rule
+main = rule {
+    instances = get_gcp_instances()
+    instance_validations = []
+    
+    for instances as instance {
+        validation = validate_instance(instance)
+        append(instance_validations, validation)
+    }
+
+    firewall_validation = validate_firewall_rules()
+    append(instance_validations, firewall_validation)
+
+    all instance_validations as validation {
+        validation.valid
+    }
+}
