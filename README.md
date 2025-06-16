@@ -2,6 +2,17 @@
 
 This Terraform module provisions a Google Cloud Platform (GCP) virtual machine and installs **[Open Web UI](https://github.com/open-webui/open-webui)** using Docker. It supports optional GPU acceleration and integrates with the OpenAI API.
 
+## 🏗️ Architecture
+
+![Terraform Infrastructure Graph](./terraform_graph.png)
+
+The diagram above shows the relationship between all Terraform resources in this project, including:
+- VM Instance
+- VPC Network and Subnet
+- Firewall Rules
+- Service Accounts
+- Storage and Compute Resources
+
 ---
 
 ## 📦 Features

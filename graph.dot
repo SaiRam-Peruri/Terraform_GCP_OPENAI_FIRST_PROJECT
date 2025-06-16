@@ -1,0 +1,21 @@
+digraph G {
+  rankdir = "RL";
+  node [shape = rect, fontname = "sans-serif"];
+  "data.google_compute_image.debian" [label="data.google_compute_image.debian"];
+  "google_compute_firewall.allow_http" [label="google_compute_firewall.allow_http"];
+  "google_compute_firewall.allow_https" [label="google_compute_firewall.allow_https"];
+  "google_compute_firewall.allow_ssh" [label="google_compute_firewall.allow_ssh"];
+  "google_compute_instance.openwebui" [label="google_compute_instance.openwebui"];
+  "google_compute_network.openwebui_vpc" [label="google_compute_network.openwebui_vpc"];
+  "google_compute_subnetwork.openwebui_subnet" [label="google_compute_subnetwork.openwebui_subnet"];
+  "google_service_account.openwebui" [label="google_service_account.openwebui"];
+  "random_password.password" [label="random_password.password"];
+  "google_compute_firewall.allow_http" -> "google_compute_network.openwebui_vpc";
+  "google_compute_firewall.allow_https" -> "google_compute_network.openwebui_vpc";
+  "google_compute_firewall.allow_ssh" -> "google_compute_network.openwebui_vpc";
+  "google_compute_instance.openwebui" -> "data.google_compute_image.debian";
+  "google_compute_instance.openwebui" -> "google_compute_subnetwork.openwebui_subnet";
+  "google_compute_instance.openwebui" -> "google_service_account.openwebui";
+  "google_compute_instance.openwebui" -> "random_password.password";
+  "google_compute_subnetwork.openwebui_subnet" -> "google_compute_network.openwebui_vpc";
+}
