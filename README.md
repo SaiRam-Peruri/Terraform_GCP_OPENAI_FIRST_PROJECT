@@ -9,9 +9,11 @@ This Terraform module provisions a Google Cloud Platform (GCP) virtual machine a
 - ✅ Supports both **CPU** and **GPU**-enabled VM types  
 - 🔐 Generates a secure random admin password  
 - 🐳 Installs and configures Docker and Open Web UI  
-- 🔑 Sets up SSH and HTTP firewall rules  
+- 🔑 Sets up SSH and HTTP/HTTPS firewall rules  
 - 🌐 Optionally connects to OpenAI API for extended functionality  
 - ☁️ Uses a custom GCP service account and startup provisioning script  
+- 🔒 NGINX reverse proxy with SSL and automatic HTTPS redirection
+- 💾 Persistent storage for user data and configurations
 
 ---
 
@@ -28,103 +30,141 @@ This Terraform module provisions a Google Cloud Platform (GCP) virtual machine a
 
 ---
 
-## 📁 File Structure
+## 📁 Project Structure
 
 ```plaintext
 .
-├── main.tf                    # Terraform resources
+├── main.tf                    # Main Terraform configuration
 ├── variables.tf               # Input variables
-├── outputs.tf                 # Output values
+├── outputs.tf                 # Output values (IP, URLs)
 ├── providers.tf               # Provider configuration
+├── vm.tf                      # VM instance configuration
+├── vpc.tf                     # Network configuration
+├── firewall.tf               # Firewall rules
 ├── scripts/
-    └── provision_basic.sh     # Startup script (called via templatefile)
-    └── provision_vars.sh
-├── vm.tf 
-└── README.md                  # You're here
+    ├── provision_basic.sh     # Basic startup script
+    └── provision_vars.sh      # Main provisioning script
+└── README.md                  # Documentation
 ```
 
 ## ⚙️ Setup Instructions
 
-1. 📁 **Clone the Repository**
+1. 📁 **Prepare Your Environment**
 
     ```bash
-    git clone https://github.com/YOUR_REPO/openwebui-gcp-terraform.git
-    cd openwebui-gcp-terraform
+    git clone <repository-url>
+    cd <project-directory>
     ```
 
 2. 🔑 **Create or Obtain GCP Credentials**
 
     - Go to [Google Cloud Console](https://console.cloud.google.com/)
-    - Create a service account with the following roles:
-        - `Compute Admin`
-        - `Service Account User`
-    - Generate a JSON key and download it (e.g., `credentials.json`)
-    - Save it in the root directory of this repo
+    - Create a service account with required roles
+    - Download JSON credentials
+    - Save as `credentials.json` in project directory
 
-3. 📄 **Create `terraform.tfvars`**
+3. 📄 **Configure Variables**
 
-    Create a file named `terraform.tfvars` in the root directory with the following values:
+    Create `terraform.tfvars`:
 
     ```hcl
     project_id           = "your-gcp-project-id"
-    region               = "us-central1"
-    zone                 = "us-central1-a"
+    region              = "us-east1"
+    zone                = "us-east1-b"
     gcp_credentials_file = "./credentials.json"
-    openai_key           = "sk-..."                            # Optional: Your OpenAI API Key
-    openai_base          = "https://api.openai.com/v1"        # Optional base URL
-    gpu_enabled          = true                               # Set to false if no GPU is needed
-    ssh_pub_key          = "./id_rsa.pub"                     # Your public SSH key
+    openai_key          = "sk-..."                    # Optional
+    openai_base         = "https://api.openai.com/v1" # Optional
+    gpu_enabled         = false                       # Set true for GPU VM
+    ssh_pub_key         = "./id_rsa.pub"
     ```
 
-    > 🛠️ If you don't have an SSH key yet, generate one:
-    >
-    > ```bash
-    > ssh-keygen -t rsa -b 4096 -f id_rsa
-    > ```
+4. 🔑 **Generate SSH Keys** (if needed)
 
-4. 📦 **Initialize Terraform**
+    ```bash
+    ssh-keygen -t rsa -b 4096 -f id_rsa
+    ```
+
+5. 🚀 **Deploy Infrastructure**
 
     ```bash
     terraform init
-    ```
-    
-    📦 Format, Validate, and Review Terraform Configuration
-    Run the following commands to ensure your Terraform code is clean and correct:
-    
-    ```bash
-    terraform fmt         # Format files to canonical style
-    terraform validate    # Validate the configuration is syntactically valid
-    terraform plan  
-    ```
-5. ✅ **Apply the Terraform Plan**
-
-    ```bash
+    terraform fmt
+    terraform validate
+    terraform plan
     terraform apply
     ```
 
-    - Type `yes` when prompted to confirm
-    - This will create the VM, configure Docker, set up the firewall, and install Open Web UI
-    - On success, Terraform will output:
-        - `public_ip`
-        - `password` (sensitive)
+6. 🌐 **Access Open Web UI**
 
-6. 🌐 **Access the Web UI**
-
-    - Open your browser and visit:
-      ```
-      http://<public_ip>
-      ```
+    After successful deployment:
+    - Open `https://<VM_IP>` in your browser
     - Login with:
-      - **Username**: `admin@demo.gs`
-      - **Password**: (from Terraform output)
+      - Username: `admin@demo.gs`
+      - Password: Get from `terraform output password`
 
-7. 🧹 **(Optional) Destroy Resources**
+## 🔧 Maintenance & Troubleshooting
 
-    To clean up everything:
+### Checking Services
+```bash
+# SSH into the VM
+ssh -i id_rsa openwebui@$(terraform output -raw public_ip)
 
-    ```bash
-    terraform destroy
-    ```
+# Check service statuses
+sudo systemctl status docker
+sudo systemctl status nginx
+sudo systemctl status openwebui
+sudo docker ps
 
----
+# View logs
+sudo journalctl -u openwebui
+sudo cat /var/log/provision.log
+sudo nginx -t
+```
+
+### Common Issues
+
+1. **Startup Script Issues**
+   - Check logs: `sudo cat /var/log/syslog | grep startup-script`
+   - View provision log: `sudo cat /var/log/provision.log`
+
+2. **Docker Container Issues**
+   - Check container logs: `sudo docker logs openwebui`
+   - Restart service: `sudo systemctl restart openwebui`
+
+3. **NGINX/SSL Issues**
+   - Test config: `sudo nginx -t`
+   - Check logs: `sudo tail -f /var/log/nginx/error.log`
+   - Restart NGINX: `sudo systemctl restart nginx`
+
+4. **Access Issues**
+   - Verify firewall rules in GCP console
+   - Check NGINX configuration
+   - Ensure services are running
+
+## 🧹 Cleanup
+
+To remove all created resources:
+
+```bash
+terraform destroy
+```
+
+## 🔒 Security Notes
+
+- Change default credentials after first login
+- The default SSL certificate is self-signed
+- Consider restricting firewall rules to specific IP ranges
+- Keep your SSH private key secure
+
+## 📝 Additional Notes
+
+- The VM uses Debian 11 (Bullseye) as base image
+- Default disk size is 200GB
+- NGINX is configured as a reverse proxy with SSL
+- Data persists in `/etc/open-webui.d/`
+- Automatic HTTPS redirection is enabled
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
