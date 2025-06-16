@@ -53,7 +53,9 @@ resource "google_compute_instance" "openwebui" {
         openai_base         = var.openai_base,
         openai_key          = var.openai_key,
         gpu_enabled         = var.gpu_enabled
-    })
+      }
+    )
+    script_hash = filesha256("./scripts/provision_vars.sh")
   }
 
   service_account {
@@ -62,14 +64,3 @@ resource "google_compute_instance" "openwebui" {
     scopes = ["cloud-platform"]
   }
 }
-
-resource "terracurl_request" "openwebui" {
-  name   = "openwebui"
-  url    = "http://${google_compute_instance.openwebui.network_interface.0.access_config.0.nat_ip}"
-  method = "GET"
-
-  response_codes = [200]
-  max_retry      = 120
-  retry_interval = 10
-}
-
