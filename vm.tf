@@ -21,7 +21,7 @@ resource "google_compute_instance" "openwebui" {
   machine_type = var.gpu_enabled == true ? var.machine.gpu.type : var.machine.cpu.type
   zone         = var.zone
 
-  tags = ["terraform", "ssh", "http"]
+  tags = ["terraform", "ssh", "http", "https"]
 
   scheduling {
     on_host_maintenance = "TERMINATE"
@@ -35,10 +35,10 @@ resource "google_compute_instance" "openwebui" {
   }
 
   network_interface {
-    network = "default"
-
+    subnetwork = google_compute_subnetwork.openwebui_subnet.id
     access_config {}
   }
+
 
   metadata = {
     # Add ssh keys for the user
@@ -73,28 +73,3 @@ resource "terracurl_request" "openwebui" {
   retry_interval = 10
 }
 
-resource "google_compute_firewall" "http" {
-  name    = "http-access"
-  network = "default"
-
-  allow {
-    protocol = "tcp"
-    ports    = ["80"]
-  }
-
-  target_tags   = ["http"]
-  source_ranges = ["0.0.0.0/0"]
-}
-
-resource "google_compute_firewall" "ssh" {
-  name    = "ssh-access"
-  network = "default"
-
-  allow {
-    protocol = "tcp"
-    ports    = ["22"]
-  }
-
-  target_tags   = ["ssh"]
-  source_ranges = ["0.0.0.0/0"]
-}
