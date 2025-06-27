@@ -1,8 +1,8 @@
-# 🚀 Deploy Open Web UI on GCP with Terraform
+#  Deploy Open Web UI on GCP with Terraform
 
 This Terraform module provisions a Google Cloud Platform (GCP) virtual machine and installs **[Open Web UI](https://github.com/open-webui/open-webui)** using Docker. It supports optional GPU acceleration and integrates with the OpenAI API.
 
-## 🏗️ Architecture
+##  Architecture
 
 ![Terraform Infrastructure Graph](./terraform_graph.png)
 
@@ -15,20 +15,20 @@ The diagram above shows the relationship between all Terraform resources in this
 
 ---
 
-## 📦 Features
+##  Features
 
-- ✅ Supports both **CPU** and **GPU**-enabled VM types  
-- 🔐 Generates a secure random admin password  
-- 🐳 Installs and configures Docker and Open Web UI  
-- 🔑 Sets up SSH and HTTP/HTTPS firewall rules  
-- 🌐 Optionally connects to OpenAI API for extended functionality  
-- ☁️ Uses a custom GCP service account and startup provisioning script  
-- 🔒 NGINX reverse proxy with SSL and automatic HTTPS redirection
-- 💾 Persistent storage for user data and configurations
+-  Supports both **CPU** and **GPU**-enabled VM types  
+-  Generates a secure random admin password  
+-  Installs and configures Docker and Open Web UI  
+-  Sets up SSH and HTTP/HTTPS firewall rules  
+-  Optionally connects to OpenAI API for extended functionality  
+-  Uses a custom GCP service account and startup provisioning script  
+-  NGINX reverse proxy with SSL and automatic HTTPS redirection
+-  Persistent storage for user data and configurations
 
 ---
 
-## 📋 Prerequisites
+##  Prerequisites
 
 - Terraform ≥ 1.4.0  
 - GCP account with billing enabled  
@@ -41,7 +41,7 @@ The diagram above shows the relationship between all Terraform resources in this
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```plaintext
 .
@@ -58,23 +58,23 @@ The diagram above shows the relationship between all Terraform resources in this
 └── README.md                  # Documentation
 ```
 
-## ⚙️ Setup Instructions
+##  Setup Instructions
 
-1. 📁 **Prepare Your Environment**
+1.  **Prepare Your Environment**
 
     ```bash
     git clone <repository-url>
     cd <project-directory>
     ```
 
-2. 🔑 **Create or Obtain GCP Credentials**
+2.  **Create or Obtain GCP Credentials**
 
     - Go to [Google Cloud Console](https://console.cloud.google.com/)
     - Create a service account with required roles
     - Download JSON credentials
     - Save as `credentials.json` in project directory
 
-3. 📄 **Configure Variables**
+3.  **Configure Variables**
 
     Create `terraform.tfvars`:
 
@@ -89,13 +89,13 @@ The diagram above shows the relationship between all Terraform resources in this
     ssh_pub_key         = "./id_rsa.pub"
     ```
 
-4. 🔑 **Generate SSH Keys** (if needed)
+4.  **Generate SSH Keys** (if needed)
 
     ```bash
     ssh-keygen -t rsa -b 4096 -f id_rsa
     ```
 
-5. 🚀 **Deploy Infrastructure**
+5.  **Deploy Infrastructure**
 
     ```bash
     terraform init
@@ -105,7 +105,7 @@ The diagram above shows the relationship between all Terraform resources in this
     terraform apply
     ```
 
-6. 🌐 **Access Open Web UI**
+6.  **Access Open Web UI**
 
     After successful deployment:
     - Open `https://<VM_IP>` in your browser
@@ -113,7 +113,7 @@ The diagram above shows the relationship between all Terraform resources in this
       - Username: `admin@demo.gs`
       - Password: Get from `terraform output password`
 
-## 🛡️ Sentinel Policies
+##  Sentinel Policies
 
 This project includes Sentinel policies (`sentinel/openwebui-policy.sentinel`) to enforce security and compliance rules:
 
@@ -158,7 +158,7 @@ This project includes Sentinel policies (`sentinel/openwebui-policy.sentinel`) t
    - Policies are automatically enforced in Terraform Cloud/Enterprise
    - For local development, use pre-commit hooks or CI/CD pipelines
 
-## 🔧 Maintenance & Troubleshooting
+##  Maintenance & Troubleshooting
 
 ### Checking Services
 ```bash
@@ -197,7 +197,7 @@ sudo nginx -t
    - Check NGINX configuration
    - Ensure services are running
 
-## 🧹 Cleanup
+##  Cleanup
 
 To remove all created resources:
 
@@ -205,14 +205,14 @@ To remove all created resources:
 terraform destroy
 ```
 
-## 🔒 Security Notes
+##  Security Notes
 
 - Change default credentials after first login
 - The default SSL certificate is self-signed
 - Consider restricting firewall rules to specific IP ranges
 - Keep your SSH private key secure
 
-## 📝 Additional Notes
+##  Additional Notes
 
 - The VM uses Debian 11 (Bullseye) as base image
 - Default disk size is 200GB
@@ -220,7 +220,7 @@ terraform destroy
 - Data persists in `/etc/open-webui.d/`
 - Automatic HTTPS redirection is enabled
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
